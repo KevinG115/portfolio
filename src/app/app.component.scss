@@ -1,0 +1,31 @@
+.main-container {
+    width: 52px;
+    min-height: 100vh;
+    background: #28282b82;
+    -webkit-background-size: cover;
+    -moz-background-size: cover;
+    -o-background-size: cover;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    position: fixed;
+
+    .logo {
+        background-color: black;
+        color: wheat;
+        padding-bottom: 25px;
+        margin-bottom: 15%;
+    }
+
+    .nav-container {
+        min-height: 10em;
+        display: table-cell;
+        vertical-align: middle;
+
+        .sidenav-counter {
+            background-color: transparent !important;
+            color: #00ffef;
+        }
+    }
+
+}

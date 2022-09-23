@@ -1,0 +1,13 @@
+<main class="main">
+    <aside class="sidebar">
+        <nav class="nav">
+            <ul>
+                <li class="active"><a [ngClass]="{'active': url === '/landing'}" (click)="routeTo('/landing')">Home</a></li>
+                <li><a [ngClass]="{'active': url === '/about-me'}" (click)="routeTo('/about-me')">About me</a></li>
+                <li><a [ngClass]="{'active': url === '/skills'}" (click)="routeTo('/skills')">Skills</a></li>
+                <li><a [ngClass]="{'active': url === '/projects'}" (click)="routeTo('/projects')">Projects</a></li>
+                <li><a [ngClass]="{'active': url === '/contact-me'}" (click)="routeTo('/contact-me')">Contact me</a></li>
+            </ul>
+        </nav>
+    </aside>
+</main>

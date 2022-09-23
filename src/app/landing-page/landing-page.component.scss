@@ -1,0 +1,173 @@
+.landing-container {
+  z-index: -1;
+  background: -webkit-linear-gradient(to top, #283E51, #0A2342);
+  /* Chrome 10-25, Safari 5.1-6 */
+  background: linear-gradient(to top, #283E51, #0A2342);
+  /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+  background: -olinear-gradient(to top, #283E51, #0A2342);
+  height: 100vh;
+}
+
+
+@function stars($n) {
+  $value: '#{random(2000)}px #{random(2000)}px #767676';
+
+  @for $i from 2 through $n {
+    $value: '#{$value} , #{random(2000)}px #{random(2000)}px #767676';
+  }
+
+  @return unquote($value);
+}
+
+$stars-small: stars(700);
+$stars-medium: stars(200);
+$stars-big: stars(100);
+
+
+.stars {
+  z-index: -1;
+  overflow: hidden;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  transition: opacity 1s ease-in-out;
+
+  .small {
+    width: 1px;
+    height: 1px;
+    background: transparent;
+    box-shadow: $stars-small;
+    animation: starsAnimation 50s linear infinite;
+
+    &:after {
+      content: " ";
+      position: absolute;
+      top: 2000px;
+      width: 1px;
+      height: 1px;
+      background: transparent;
+      box-shadow: $stars-small;
+    }
+  }
+
+  .medium {
+    width: 2px;
+    height: 2px;
+    background: transparent;
+    box-shadow: $stars-medium;
+    animation: starsAnimation 100s linear infinite;
+
+    &:after {
+      content: " ";
+      position: absolute;
+      top: 2000px;
+      width: 2px;
+      height: 2px;
+      background: transparent;
+      box-shadow: $stars-medium;
+    }
+  }
+
+
+  .big {
+    width: 3px;
+    height: 3px;
+    background: transparent;
+    box-shadow: $stars-big;
+    border-radius: 100%;
+    animation: starsAnimation 150s linear infinite;
+
+    &:after {
+      content: " ";
+      position: absolute;
+      top: 2000px;
+      width: 3px;
+      height: 3px;
+      background: transparent;
+      box-shadow: $stars-big;
+      border-radius: 100%;
+    }
+  }
+
+  .rocket {
+    float: right;
+    width: 55em;
+  }
+
+  .laptop {
+    width: 19em;
+    animation: fly 300s linear infinite;
+    pointer-events: none !important;
+    top: 0;
+    left: 0;
+    transform: translateX(-120%) translateY(-120%) rotateZ(0);
+    position: fixed;
+    animation-delay: 1s;
+    z-index: 999999;
+  }
+}
+
+p {
+  animation-duration: 3s;
+  animation-name: slidein;
+}
+
+@keyframes slidein {
+  from {
+    margin-top: 100em;
+    width: 55em;
+  }
+
+  to {
+    margin-bottom: 0%;
+    width: 55em;
+  }
+}
+
+// swap from/to values to reverse animation
+@keyframes starsAnimation {
+  from {
+    transform: translateY(-2000px);
+  }
+
+  to {
+    transform: translateY(0px);
+  }
+}
+
+@keyframes fly {
+
+  0% {
+    display: block;
+    transform: translateX(-50%) translateY(50vh)
+  }
+
+  15% {
+    transform: translateX(100vw) translateY(-100%)
+  }
+
+  18% {
+    transform: translateX(100vw) translateY(-30%)
+  }
+
+  40% {
+    transform: translateX(-200%) translateY(3vh)
+  }
+
+  43% {
+    transform: translateX(-200%) translateY(-100%)
+  }
+
+  65% {
+    transform: translateX(100vw) translateY(50vh)
+  }
+
+  68% {
+    transform: translateX(20vw) translateY(-200%)
+  }
+
+  95% {
+    transform: translateX(10vw) translateY(100vh)
+  }
+}
