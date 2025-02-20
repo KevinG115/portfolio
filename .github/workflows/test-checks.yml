@@ -1,0 +1,70 @@
+name: PR Test Checks
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  jest-tests:
+    name: Run Jest Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install Dependencies
+        run: npm ci  # Ensures clean dependency installation
+
+      - name: Run Jest Tests and Save Output
+        id: jest
+        run: |
+          npm test -- --ci --reporters=default --reporters=json > jest-output.json || true
+          echo "JEST_EXIT_CODE=$?" >> $GITHUB_ENV
+
+      - name: Extract Jest Failures
+        id: extract-failures
+        run: |
+          if [ "$JEST_EXIT_CODE" -ne 0 ]; then
+            echo "❌ Jest tests failed!"
+            FAILURES=$(jq -r '.testResults[] | select(.status=="failed") | .name + "\n" + ( .assertionResults[] | select(.status=="failed") | .fullName )' jest-output.json)
+            echo "JEST_FAILURES<<EOF" >> $GITHUB_ENV
+            echo "$FAILURES" >> $GITHUB_ENV
+            echo "EOF" >> $GITHUB_ENV
+          else
+            echo "✅ Jest tests passed!"
+          fi
+
+      - name: Comment on PR if Jest Tests Fail
+        uses: actions/github-script@v6
+        if: env.JEST_FAILURES != ''
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { owner, repo, pull_request } = context.payload;
+            const failures = process.env.JEST_FAILURES;
+
+            const comment = `
+            ❌ **Jest Tests Failed!**
+            The following tests failed during execution:
+
+            \`\`\`
+            ${failures}
+            \`\`\`
+
+            Please fix these failing tests before merging. 🚀
+            `;
+
+            github.rest.issues.createComment({
+              owner,
+              repo,
+              issue_number: pull_request.number,
+              body: comment
+            });
+
+      - name: Fail if Jest Tests Fail
+        if: env.JEST_FAILURES != ''
+        run: exit 1

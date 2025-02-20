@@ -1,0 +1,63 @@
+name: Enforce Spec Files in PRs (Comment Instead of Failing)
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  check-spec-files:
+    name: Ensure Spec Files Are Updated
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Get Changed Files
+        id: changed-files
+        uses: tj-actions/changed-files@v35
+
+      - name: Check for .ts Files Without .spec.ts
+        id: spec-check
+        run: |
+          MISSING_SPECS=()
+          for FILE in ${{ steps.changed-files.outputs.all_modified_files }}; do
+            if [[ $FILE == *.ts && ! $FILE == *.spec.ts ]]; then
+              SPEC_FILE="${FILE%.ts}.spec.ts"
+              if ! git ls-files --error-unmatch "$SPEC_FILE" > /dev/null 2>&1; then
+                MISSING_SPECS+=("$FILE")
+              fi
+            fi
+          done
+
+          if [[ ${#MISSING_SPECS[@]} -gt 0 ]]; then
+            echo "MISSING_SPECS=$(echo "${MISSING_SPECS[@]}" | tr ' ' ',')" >> $GITHUB_ENV
+            echo "❌ Missing test coverage for the following files:"
+            printf '%s\n' "${MISSING_SPECS[@]}"
+          else
+            echo "✅ All modified .ts files have corresponding .spec.ts files."
+          fi
+
+      - name: Comment on PR if tests are missing
+        uses: actions/github-script@v6
+        if: env.MISSING_SPECS != ''
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { owner, repo, pull_request } = context.payload;
+            const missingFiles = process.env.MISSING_SPECS.split(",");
+            const formattedFiles = missingFiles.map(file => `- \`${file}\``).join("\n");
+
+            const comment = `
+            ⚠️ **Missing Test Coverage!**
+            The following \`.ts\` files were modified without a corresponding \`.spec.ts\` file update:
+
+            ${formattedFiles}
+
+            Please ensure that all changed components, services, or utilities have updated unit tests. 🚀
+            `;
+
+            github.rest.issues.createComment({
+              owner,
+              repo,
+              issue_number: pull_request.number,
+              body: comment
+            });
