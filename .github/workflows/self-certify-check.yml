@@ -1,0 +1,63 @@
+name: UI Changes Require Self-Certification
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  check-ui-tests:
+    name: Check if UI Changes Need Self-Certification
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Get Changed Files
+        id: changed-files
+        uses: tj-actions/changed-files@v35
+
+      - name: Check for .html Changes Without Galen Tests
+        id: check-ui-tests
+        run: |
+          HTML_CHANGED=false
+          GALEN_CHANGED=false
+
+          for FILE in ${{ steps.changed-files.outputs.all_modified_files }}; do
+            if [[ $FILE == *.html ]]; then
+              HTML_CHANGED=true
+            fi
+            if [[ $FILE == tests/galen/* ]]; then
+              GALEN_CHANGED=true
+            fi
+          done
+
+          echo "HTML_CHANGED=$HTML_CHANGED" >> $GITHUB_ENV
+          echo "GALEN_CHANGED=$GALEN_CHANGED" >> $GITHUB_ENV
+
+      - name: Comment on PR if UI Changes Lack Galen Tests
+        uses: actions/github-script@v6
+        if: env.HTML_CHANGED == 'true' && env.GALEN_CHANGED == 'false'
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { owner, repo, pull_request } = context.payload;
+
+            const comment = `
+            ⚠️ **UI Changes Detected Without Galen Tests!**
+            It looks like one or more \`.html\` files were modified, but no changes were made in the \`tests/galen/\` directory.
+
+            Please **self-certify** that you manually tested the UI changes:
+
+            - [ ] I have manually tested the UI changes in different browsers.
+            - [ ] No visual regressions were found.
+            - [ ] The changes work as expected in all required screen sizes.
+            - [ ] The PR is ready to be reviewed.
+
+            If UI tests are needed, consider adding a Galen test to cover the changes. 🚀
+            `;
+
+            github.rest.issues.createComment({
+              owner,
+              repo,
+              issue_number: pull_request.number,
+              body: comment
+            });
